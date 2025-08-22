@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Portal de Ficha — Sigilo & Ascensão</title>
+
+  <!-- Fontes -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.cdnfonts.com/css/arkhip" rel="stylesheet">
+
+  <!-- para exportar PDF do grimório -->
+  <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="theme-sangue">
+  <!-- OVERLAY DE DECISÃO -->
+  <div id="decisionOverlay" class="decision-overlay">
+    <div class="decision-card">
+      <h2 class="title-font">Escolha seu Caminho</h2>
+      <p>Decisão crucial. O mundo prende a respiração.</p>
+      <div class="decision-actions">
+        <button id="chooseSangue" class="btn btn-red">SANGUE</button>
+        <button id="choosePoeira" class="btn btn-green">POEIRA</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CUSTOM  -->
+  <div id="depositModal" class="modal hidden" aria-hidden="true" role="dialog" aria-labelledby="depTitle">
+    <div class="modal-card">
+      <h2 id="depTitle" class="title-font">Depósito de Energia</h2>
+      <p class="hint">Digite a porcentagem a ser oferecida ao sigilo (ex: 20, 50, 80...).</p>
+      <div class="field">
+        <span>Quantidade (%)</span>
+        <input id="depositAmount" type="number" min="1" max="10000" step="1" placeholder="80" required>
+      </div>
+      <div class="modal-actions">
+        <button id="cancelDeposit" class="btn btn-ghost" type="button">Cancelar</button>
+        <button id="confirmDeposit" class="btn" type="button">Confirmar</button>
+      </div>
+      <div class="burst" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <main class="wrap">
+    <!-- HEADER -->
+    <header class="header">
+      <div class="header-left">
+        <h1 class="title-font site-title">SIGILO & ASCENSÃO</h1>
+        <div class="grid-2">
+          <label class="field">
+            <span>Nome</span>
+            <input id="nome" type="text" placeholder="Ex: Tengy Kato">
+          </label>
+          <label class="field">
+            <span>Idade</span>
+            <input id="idade" type="number" min="1" max="999" placeholder="19">
+          </label>
+        </div>
+
+        <label class="field">
+          <span>Essência / Breve descrição</span>
+          <input id="essencia" type="text" placeholder="breve resumo da vibe do personagem">
+        </label>
+
+        <div class="header-actions">
+          <button id="btnSalvar" class="btn">Salvar Local</button>
+          <button id="btnCarregar" class="btn btn-ghost">Carregar</button>
+          <button id="btnBaixarJSON" class="btn btn-ghost">Baixar JSON</button>
+          <label class="importer">
+            <input id="importarArquivo" type="file" accept=".json">
+            <span class="btn btn-ghost">Importar JSON</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="avatar">
+          <img id="fotoPreview" alt="Foto do personagem" src="">
+          <div class="avatar-actions">
+            <label class="btn small">
+              Trocar foto
+              <input id="fotoInput" type="file" accept="image/*" hidden>
+            </label>
+          </div>
+        </div>
+        <div class="header-style">
+          <span>Fundo personalizado (DM):</span>
+          <input id="bgURL" type="text" placeholder="URL de imagem...">
+          <button id="btnAplicarBG" class="btn small">Aplicar</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- SELO / RELÓGIO -->
+    <section class="core">
+      <div class="sigil-stack">
+        <svg class="ring" viewBox="0 0 140 140" aria-hidden="true">
+          <circle class="track" cx="70" cy="70" r="60" />
+          <circle class="progress" cx="70" cy="70" r="60" />
+        </svg>
+
+        <button class="sigil-btn" id="openDeposit" aria-label="Depositar energia">
+          <div class="sigil-img" title="selo"><span>SELO</span></div>
+        </button>
+
+        <div class="charge-hud">
+          <div class="charge-big title-font" id="chargeDisplay">0%</div>
+          <div class="stock">
+            <span>estoque:</span>
+            <strong id="stockDisplay">0</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="core-actions">
+        <button id="openDeposit2" class="btn">Depositar %</button>
+        <button id="openDecision" class="btn btn-ghost">Decisão: Sangue ou Poeira</button>
+      </div>
+    </section>
+
+    <!-- MODIFICADORES -->
+    <section class="mods">
+      <h2 class="section-title title-font">Modificadores (5 mecânicas do personagem)</h2>
+      <div class="mods-grid">
+        <div class="mod"><div class="mod-value title-font" id="modVal0">0</div><input class="mod-name" id="modName0" placeholder="ex: Determinação"><button class="plus" data-index="0">+</button></div>
+        <div class="mod"><div class="mod-value title-font" id="modVal1">0</div><input class="mod-name" id="modName1" placeholder="ex: Eco Sombrio"><button class="plus" data-index="1">+</button></div>
+        <div class="mod"><div class="mod-value title-font" id="modVal2">0</div><input class="mod-name" id="modName2" placeholder="ex: Ímpeto"><button class="plus" data-index="2">+</button></div>
+        <div class="mod"><div class="mod-value title-font" id="modVal3">0</div><input class="mod-name" id="modName3" placeholder="ex: Vontade"><button class="plus" data-index="3">+</button></div>
+        <div class="mod"><div class="mod-value title-font" id="modVal4">0</div><input class="mod-name" id="modName4" placeholder="ex: Brasa"><button class="plus" data-index="4">+</button></div>
+      </div>
+      <p class="mods-note">A cada <b>100%</b> completos no relógio, você recebe <b>+3</b> pontos no estoque. Use <b>+</b> para alocar nos modificadores.</p>
+    </section>
+
+    <!-- MOCHILA -->
+    <section class="pack">
+      <button id="togglePack" class="pack-toggle title-font" aria-expanded="false">MOCHILA</button>
+      <div id="packBody" class="pack-body" hidden>
+        <div class="pack-lid"></div>
+        <div class="pack-content">
+          <div class="items-grid" id="itemsGrid">
+            <!-- 10 slots padrão -->
+            <div class="item"><div class="icon"><span>ICO</span></div><input class="item-name" placeholder="item 1"></div>
+            <div class="item"><div class="icon"><span>ICO</span></div><input class="item-name" placeholder="item 2"></div>
+            <div class="item"><div class="icon"><span>ICO</span></div><input class="item-name" placeholder="item 3"></div>
+            <div class="item"><div class="icon"><span>ICO</span></div><input class="item-name" placeholder="item 4"></div>
+            <div class="item"><div class="icon"><span>ICO</span></div><input class="item-name" placeholder="item 5"></div>
+            <div class="item"><div class="icon"><span>ICO</span></div><input class="item-name" placeholder="item 6"></div>
+            <div class="item"><div class="icon"><span>ICO</span></div><input class="item-name" placeholder="item 7"></div>
+            <div class="item"><div class="icon"><span>ICO</span></div><input class="item-name" placeholder="item 8"></div>
+            <div class="item"><div class="icon"><span>ICO</span></div><input class="item-name" placeholder="item 9"></div>
+            <div class="item"><div class="icon"><span>ICO</span></div><input class="item-name" placeholder="item 10"></div>
+          </div>
+
+          <!-- GRIMÓRIO -->
+          <div class="grimoire">
+            <div class="book" id="book">
+              <div class="book-cover"><div class="cover-slot">CAPA</div></div>
+              <div class="book-inner"><textarea id="grimoireText" placeholder="escreva o que quiser nas páginas..."></textarea></div>
+            </div>
+            <div class="grimoire-actions">
+              <button id="bookToggle" class="btn">Abrir/Fechar</button>
+              <button id="saveGrimoire" class="btn btn-ghost">Salvar</button>
+              <button id="exportTxt" class="btn btn-ghost">Exportar .txt</button>
+              <button id="exportPdf" class="btn btn-ghost">Exportar .pdf</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DADOS -->
+    <section class="dice">
+      <h2 class="section-title title-font">Dados</h2>
+      <div class="dice-row">
+        <label class="field">
+          <span>Tipo de dado</span>
+          <select id="dieSelect">
+            <option value="4">d4</option>
+            <option value="6">d6</option>
+            <option value="8">d8</option>
+            <option value="10">d10</option>
+            <option value="12">d12</option>
+            <option value="20" selected>d20</option>
+          </select>
+        </label>
+        <button id="rollBtn" class="btn">Rolar</button>
+      </div>
+      <div class="dice-stage">
+        <div class="die" id="dieIcon" aria-hidden="true">🎲</div>
+        <div class="dice-result title-font" id="diceResult" hidden>20</div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="foot">
+      <button id="contactDM" class="btn contact">Falar com o DM</button>
+    </footer>
+  </main>
+
+  <script src="js/script.js" defer></script>
+
+  
+</body>
+</html>
