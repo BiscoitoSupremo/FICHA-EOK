@@ -120,9 +120,17 @@
     // Mochila/Grimório
     togglePack.addEventListener('click', ()=>{
       const open = packBody.hasAttribute('hidden');
-      if (open){ packBody.removeAttribute('hidden'); packBody.classList.add('open'); togglePack.setAttribute('aria-expanded','true'); }
-      else { packBody.setAttribute('hidden',''); packBody.classList.remove('open'); togglePack.setAttribute('aria-expanded','false'); }
+      if (open){
+        packBody.removeAttribute('hidden');
+        packBody.classList.add('open');
+        togglePack.setAttribute('aria-expanded','true');
+      } else {
+        packBody.setAttribute('hidden','');
+        packBody.classList.remove('open');
+        togglePack.setAttribute('aria-expanded','false');
+      }
     });
+
     bookToggle.addEventListener('click', ()=> book.classList.toggle('open'));
     saveGrimoire.addEventListener('click', salvarLocal);
     exportTxt.addEventListener('click', exportarTxt);
@@ -154,8 +162,14 @@
   document.addEventListener('DOMContentLoaded', init);
 
   // ===== UI core =====
-  function showDepositModal(){ depModal.classList.remove('hidden'); depAmount.focus(); }
-  function hideDepositModal(){ depModal.classList.add('hidden'); }
+  function showDepositModal(){
+    depModal.classList.remove('hidden');
+    depAmount.focus();
+  }
+
+  function hideDepositModal(){
+    depModal.classList.add('hidden');
+  }
 
   function confirmDeposit(){
     const val = clamp(parseInt((depAmount.value||'').trim(),10)||0, 1, 10000);
@@ -166,7 +180,6 @@
     depositPercentage(val);
   }
 
-
   function depositPercentage(perc){
     const total = charge + perc;
     const fullTurns = Math.floor(total / 100);
@@ -175,8 +188,12 @@
     if (fullTurns > 0){
       animateChargeTo(100, () => {
         stockPoints += fullTurns * perTurnReward;
-        charge = 0; updateRing(); render();
-        if (remainder > 0){ setTimeout(()=>animateChargeTo(remainder, render), 220); }
+        charge = 0;
+        updateRing();
+        render();
+        if (remainder > 0){
+          setTimeout(()=>animateChargeTo(remainder, render), 220);
+        }
       });
     } else {
       animateChargeTo(remainder, render);
@@ -193,9 +210,15 @@
       const p = Math.min(1, (t - t0) / dur);
       const eased = easeInOutCubic(p);
       const current = start + (end - start)*eased;
-      charge = current; updateRing();
-      if (p < 1) requestAnimationFrame(tick);
-      else { charge = end; updateRing(); onDone && onDone(); }
+      charge = current;
+      updateRing();
+      if (p < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        charge = end;
+        updateRing();
+        onDone && onDone();
+      }
     }
     requestAnimationFrame(tick);
   }
@@ -206,12 +229,16 @@
     progressEl.style.strokeDashoffset = offset;
     chargeDisplay.textContent = `${Math.round(charge)}%`;
   }
+
   function render(){
     stockDisplay.textContent = `${stockPoints}`;
     plusBtns.forEach(b => b.disabled = stockPoints<=0);
   }
+
   function animateBurst(){
-    burstFX.classList.remove('on'); void burstFX.offsetWidth; burstFX.classList.add('on');
+    burstFX.classList.remove('on');
+    void burstFX.offsetWidth;
+    burstFX.classList.add('on');
     setTimeout(()=>burstFX.classList.remove('on'), 550);
   }
 
@@ -219,9 +246,15 @@
   function getState(){
     return {
       header:{
-        nome: nome.value, idade: idade.value, essencia: essencia.value, foto: fotoPreview.src || ''
+        nome: nome.value,
+        idade: idade.value,
+        essencia: essencia.value,
+        foto: fotoPreview.src || ''
       },
-      core:{ charge: Math.round(charge), stockPoints },
+      core:{
+        charge: Math.round(charge),
+        stockPoints
+      },
       mods: [0,1,2,3,4].map(i => ({
         nome: document.getElementById(`modName${i}`).value,
         valor: parseInt(document.getElementById(`modVal${i}`).textContent,10)||0
@@ -233,6 +266,7 @@
       tema: document.body.className
     };
   }
+
   function setState(st){
     if (!st) return;
     nome.value = st.header?.nome || '';
@@ -242,7 +276,8 @@
 
     charge = clamp(st.core?.charge ?? 0, 0, 100);
     stockPoints = Math.max(0, st.core?.stockPoints ?? 0);
-    updateRing(); render();
+    updateRing();
+    render();
 
     (st.mods||[]).forEach((m,i)=>{
       document.getElementById(`modName${i}`).value = m?.nome || '';
@@ -250,44 +285,75 @@
     });
 
     const names = document.querySelectorAll('.item .item-name');
-    (st.mochila?.itens||[]).forEach((txt,i)=>{ if (names[i]) names[i].value = txt || ''; });
+    (st.mochila?.itens||[]).forEach((txt,i)=>{
+      if (names[i]) names[i].value = txt || '';
+    });
     grimoireText.value = st.mochila?.grimoire || '';
 
     document.body.className = st.tema || 'theme-sangue';
   }
-  function salvarLocal(){ localStorage.setItem('ficha_portal', JSON.stringify(getState())); alert('Salvo localmente!') }
+
+  function salvarLocal(){
+    localStorage.setItem('ficha_portal', JSON.stringify(getState()));
+    alert('Salvo localmente!');
+  }
+
   function carregarLocal(){
     const raw = localStorage.getItem('ficha_portal');
     if (!raw) return alert('Nada salvo.');
-    try{ setState(JSON.parse(raw)); }catch{ alert('JSON salvo inválido.'); }
+    try{
+      setState(JSON.parse(raw));
+    }catch{
+      alert('JSON salvo inválido.');
+    }
   }
+
   function baixarJSON(){
     const blob = new Blob([JSON.stringify(getState(), null, 2)], {type:'application/json'});
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'ficha_portal.json'; a.click();
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'ficha_portal.json';
+    a.click();
     URL.revokeObjectURL(url);
   }
+
   function importarJSON(e){
-    const f = e.target.files?.[0]; if (!f) return;
+    const f = e.target.files?.[0];
+    if (!f) return;
     const reader = new FileReader();
-    reader.onload = ev => { try{ setState(JSON.parse(ev.target.result)); }catch{ alert('Arquivo JSON inválido.'); } };
+    reader.onload = ev => {
+      try{
+        setState(JSON.parse(ev.target.result));
+      }catch{
+        alert('Arquivo JSON inválido.');
+      }
+    };
     reader.readAsText(f);
   }
 
   function exportarTxt(){
     const blob = new Blob([grimoireText.value||''], {type:'text/plain;charset=utf-8'});
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'grimorio.txt'; a.click();
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'grimorio.txt';
+    a.click();
     URL.revokeObjectURL(url);
   }
+
   function exportarPdf(){
     const { jsPDF } = window.jspdf || {};
-    if (!jsPDF){ alert('jsPDF não carregou.'); return; }
+    if (!jsPDF){
+      alert('jsPDF não carregou.');
+      return;
+    }
     const doc = new jsPDF({ unit:'pt', format:'a4' });
     const margin = 40, maxWidth = 515;
     const text = grimoireText.value || '';
     const lines = doc.splitTextToSize(text, maxWidth);
-    doc.setFont('Times','Normal'); doc.setFontSize(12);
+    doc.setFont('Times','Normal');
+    doc.setFontSize(12);
     doc.text(lines, margin, margin);
     doc.save('grimorio.pdf');
   }
@@ -315,3 +381,17 @@
   window.exportarPdf = exportarPdf;
 
 })();
+
+// ===== REGISTRO DO SERVICE WORKER (PWA) =====
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('./service-worker.js')
+      .then(reg => {
+        console.log('Service Worker registrado:', reg.scope);
+      })
+      .catch(err => {
+        console.error('Falha ao registrar Service Worker:', err);
+      });
+  });
+}
